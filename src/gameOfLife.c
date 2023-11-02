@@ -1,16 +1,19 @@
+/*
+Programa: gameOfLife.h
+Descrição: Conway game of life implementation
+Author: Augusto dos Santos
+Data: 02/11/2023
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
 #include <unistd.h>
 #include "myStr.h"
+#include "gameOfLife.h"
 
 #define tamanhoCampo 10
 
-typedef struct field{
-    int sizeOfField;
-    int ** matriz;
-}field;
 
 // Função que printa o campo de forma mais completa
 void printCampo(field campo){
@@ -45,7 +48,6 @@ void printCampoSimplificado(field campo){
     printf("+\n");
 }
 
-
 // Função que inicializa os parâmetros e o vetor do campo
 void alocaMatrizCampo(field * campo){
     campo->matriz = (int**)malloc(sizeof(int*) * campo->sizeOfField);
@@ -54,7 +56,7 @@ void alocaMatrizCampo(field * campo){
 }
 
 // TODO!!! resolver essa função
-// Função que povoa a matriz do campo.
+// Povoa a matriz do campo.
 // A escala de criação vai de 0, onde nenhum indivídio é criado, até 20, onde a população é total
 void povoaCampoAleatorio(field * campo, int populationScale){
     if (populationScale > 20 || populationScale < 0){
@@ -68,17 +70,16 @@ void povoaCampoAleatorio(field * campo, int populationScale){
 }
 
 
-
+// Cria uma fase de acordo com o arquivo passado como parâmetro
 void povoaCampoArquivo(field * campo, char nomeArquivo[]){
     FILE * arquivo = fopen(nomeArquivo, "r");
     char input;
     campo->sizeOfField = 0;     // Iniciando com 0
 
-    while(1){
+    while(1){                                           // Loop para pegar o tamanho do campo, pois pode ser composto por um inteiro com mais de 1 dígito
         fread(&input, sizeof(char), 1, arquivo);       // Pegando informações do tamanho do campo
         if(input == '\n') break;
-        // Vai multiplicando por 10 pois o campo mais a esquerda vai crescendo sua magnitude
-        campo->sizeOfField = campo->sizeOfField * 10 + charToInt(input);
+        campo->sizeOfField = campo->sizeOfField * 10 + charToInt(input);    // Vai multiplicando por 10 pois o campo mais a esquerda vai crescendo sua magnitude
     }
     alocaMatrizCampo(campo);
     // Alocando o vetor
@@ -97,8 +98,6 @@ void povoaCampoArquivo(field * campo, char nomeArquivo[]){
         }  
     }
 }
-
-
 
 // Simula um ciclo. Neste, é olhada a perspectiva de cada célula, que olha os vizinhos ao seu redor
 // Há 3 regras:
@@ -122,7 +121,6 @@ void simulaCicloA(field * campo){
                         nNeigh += campo->matriz[k][l];      // Como já é binário, usa-se assim pra evitar mais uma conta
                 }
             }
-            // printf("[%d][%d] = %d\n", i, j, nNeigh);
             // Contados os vizinhos, agora é preciso decidir se as céluas vivem, morrem ou renascem
             if (campo->matriz[i][j])            // Caso esteja viva
                 if(nNeigh < 2 || nNeigh > 3)      // Caso esteja fora da zona habitável, morre
@@ -139,26 +137,3 @@ void simulaCicloA(field * campo){
 }
 
 
-int main(int argc, char * argv[]){
-    field campo;
-
-    if(argc < 2){
-        povoaCampoArquivo(&campo, "fases/theGlider.txt");
-    }else{
-        char nomeArquivo[50];
-        strcat(nomeArquivo, "fases/");
-        strcat(nomeArquivo, argv[1]);
-        strcat(nomeArquivo, ".txt");
-        printf("%s", nomeArquivo);
-        povoaCampoArquivo(&campo, nomeArquivo);
-    }
-    
-    while(1){
-        printCampoSimplificado(campo);
-        simulaCicloA(&campo);
-        // getchar();
-        sleep(1);
-    }
-    // */
-   return 0;
-}
